@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -10,6 +10,12 @@ import {
   User,
 } from "firebase/auth";
 import Image from "next/image";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -22,10 +28,31 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  const handleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-  };
+const handleLogin = async () => {
+  const provider = new GoogleAuthProvider();
+
+  const result = await signInWithPopup(auth, provider);
+
+  const user = result.user;
+
+  const userRef = doc(db, "users", user.uid);
+
+  const userSnapshot = await getDoc(userRef);
+
+  if (!userSnapshot.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: user.photoURL,
+      createdAt: serverTimestamp(),
+    });
+
+    console.log("新使用者建立成功");
+  } else {
+    console.log("使用者已存在");
+  }
+};
 
   const handleLogout = async () => {
     await signOut(auth);
