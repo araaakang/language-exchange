@@ -16,14 +16,33 @@ import {
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import Link from "next/link";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
-
+  const [profile, setProfile] = useState<any>(null);
+  
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (currentUser) => {
+        setUser(currentUser);
+
+        if (!currentUser) return;
+
+        const userRef = doc(
+          db,
+          "users",
+          currentUser.uid
+        );
+
+        const snapshot = await getDoc(userRef);
+
+        if (snapshot.exists()) {
+          setProfile(snapshot.data());
+        }
+      }
+    );
 
     return () => unsubscribe();
   }, []);
@@ -88,7 +107,20 @@ const handleLogin = async () => {
       </h1>
 
       <p>{user.email}</p>
-
+      {profile && (
+        <>
+          <p>母語：{profile.nativeLanguage}</p>
+          <p>學習語言：{profile.targetLanguage}</p>
+          <p>自我介紹：{profile.bio}</p>
+          <p>聯絡方式：{profile.contact}</p>
+        </>
+      )}
+      <Link
+        href="/profile"
+        className="rounded-lg bg-blue-500 px-4 py-2 text-white"
+      >
+        編輯個人資料
+      </Link>
       <button
         onClick={handleLogout}
         className="rounded-lg bg-red-500 px-4 py-2 text-white"
