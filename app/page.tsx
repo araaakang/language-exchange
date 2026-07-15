@@ -121,6 +121,12 @@ const handleLogin = async () => {
       >
         編輯個人資料
       </Link>
+      <Link
+        href="/users"
+        className="rounded-lg bg-blue-500 px-4 py-2 text-white"
+      >
+        瀏覽會員
+      </Link>
       <button
         onClick={handleLogout}
         className="rounded-lg bg-red-500 px-4 py-2 text-white"
