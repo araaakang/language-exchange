@@ -18,12 +18,12 @@ import {
 } from "firebase/firestore";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { isProfileComplete } from "@/types/user";
+import { isProfileComplete, UserProfile } from "@/types/user";
 
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -43,7 +43,7 @@ export default function Home() {
         const data = snapshot.exists() ? snapshot.data() : null;
 
         if (data) {
-          setProfile(data);
+          setProfile(data as Partial<UserProfile>);
         }
 
         if (!isProfileComplete(data)) {
