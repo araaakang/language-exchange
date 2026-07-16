@@ -4,8 +4,17 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+} from "firebase/firestore";
 import PartnerCard, { PartnerCardData } from "@/components/PartnerCard";
+import { isProfileComplete } from "@/types/user";
 
 export default function UsersPage() {
   const router = useRouter();
@@ -21,6 +30,13 @@ export default function UsersPage() {
       }
 
       try {
+        const ownSnapshot = await getDoc(doc(db, "users", currentUser.uid));
+
+        if (!isProfileComplete(ownSnapshot.exists() ? ownSnapshot.data() : null)) {
+          router.push("/profile");
+          return;
+        }
+
         const usersQuery = query(
           collection(db, "users"),
           orderBy("createdAt", "desc"),

@@ -8,6 +8,7 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { PartnerCardData } from "@/components/PartnerCard";
+import { isProfileComplete } from "@/types/user";
 
 type PartnerDetail = PartnerCardData & { contact?: string };
 
@@ -29,6 +30,13 @@ export default function UserDetailPage() {
       }
 
       try {
+        const ownSnapshot = await getDoc(doc(db, "users", currentUser.uid));
+
+        if (!isProfileComplete(ownSnapshot.exists() ? ownSnapshot.data() : null)) {
+          router.push("/profile");
+          return;
+        }
+
         const snapshot = await getDoc(doc(db, "users", uid));
 
         if (!snapshot.exists()) {

@@ -17,11 +17,14 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { isProfileComplete } from "@/types/user";
 
 export default function Home() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any>(null);
-  
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
       auth,
@@ -37,15 +40,20 @@ export default function Home() {
         );
 
         const snapshot = await getDoc(userRef);
+        const data = snapshot.exists() ? snapshot.data() : null;
 
-        if (snapshot.exists()) {
-          setProfile(snapshot.data());
+        if (data) {
+          setProfile(data);
+        }
+
+        if (!isProfileComplete(data)) {
+          router.push("/profile");
         }
       }
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
 const handleLogin = async () => {
   const provider = new GoogleAuthProvider();

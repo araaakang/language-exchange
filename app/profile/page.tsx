@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc,updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { LANGUAGE_OPTIONS, Language } from "@/types/user";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [nativeLanguage, setNativeLanguage] = useState("");
-  const [targetLanguage, setTargetLanguage] = useState("");
+  const [nativeLanguage, setNativeLanguage] = useState<Language | "">("");
+  const [targetLanguage, setTargetLanguage] = useState<Language | "">("");
   const [bio, setBio] = useState("");
   const [contact, setContact] = useState("");
 
@@ -28,8 +29,12 @@ export default function ProfilePage() {
 
       const data = snapshot.data();
 
-      setNativeLanguage(data.nativeLanguage || "");
-      setTargetLanguage(data.targetLanguage || "");
+      setNativeLanguage(
+        LANGUAGE_OPTIONS.includes(data.nativeLanguage) ? data.nativeLanguage : ""
+      );
+      setTargetLanguage(
+        LANGUAGE_OPTIONS.includes(data.targetLanguage) ? data.targetLanguage : ""
+      );
       setBio(data.bio || "");
       setContact(data.contact || "");
     };
@@ -87,14 +92,22 @@ export default function ProfilePage() {
             母語
           </label>
 
-          <input
+          <select
             id="nativeLanguage"
-            type="text"
             value={nativeLanguage}
-            onChange={(e) => setNativeLanguage(e.target.value)}
-            placeholder="例如：中文"
+            onChange={(e) => setNativeLanguage(e.target.value as Language)}
+            required
             className="w-full rounded-lg border px-4 py-2"
-          />
+          >
+            <option value="" disabled>
+              請選擇母語
+            </option>
+            {LANGUAGE_OPTIONS.map((lang) => (
+              <option key={lang} value={lang}>
+                {lang}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -105,14 +118,22 @@ export default function ProfilePage() {
             想學習的語言
           </label>
 
-          <input
+          <select
             id="targetLanguage"
-            type="text"
             value={targetLanguage}
-            onChange={(e) => setTargetLanguage(e.target.value)}
-            placeholder="例如：韓文"
+            onChange={(e) => setTargetLanguage(e.target.value as Language)}
+            required
             className="w-full rounded-lg border px-4 py-2"
-          />
+          >
+            <option value="" disabled>
+              請選擇想學習的語言
+            </option>
+            {LANGUAGE_OPTIONS.map((lang) => (
+              <option key={lang} value={lang}>
+                {lang}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

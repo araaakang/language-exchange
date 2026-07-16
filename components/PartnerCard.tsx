@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Language } from "@/types/user";
 
 export interface PartnerCardData {
   uid: string;
   displayName: string | null;
   photoURL: string | null;
-  nativeLanguage?: string;
-  targetLanguage?: string;
+  nativeLanguage?: Language;
+  targetLanguage?: Language;
   bio?: string;
   interests?: string[];
 }
