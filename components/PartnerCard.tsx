@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export interface PartnerCardData {
   uid: string;
@@ -25,7 +26,10 @@ export default function PartnerCard({ partner }: { partner: PartnerCardData }) {
       : bio;
 
   return (
-    <div className="rounded-lg border p-4">
+    <Link
+      href={`/users/${partner.uid}`}
+      className="block rounded-lg border p-4 transition hover:border-gray-400"
+    >
       <div className="flex items-center gap-3">
         {partner.photoURL ? (
           <Image
@@ -63,6 +67,6 @@ export default function PartnerCard({ partner }: { partner: PartnerCardData }) {
           ))}
         </div>
       )}
-    </div>
+    </Link>
   );
 }
