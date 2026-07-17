@@ -127,7 +127,7 @@ export default function UserDetailPage() {
           {interests.map((interest) => (
             <span
               key={interest}
-              className="rounded-full bg-gray-100 px-3 py-1 text-xs"
+              className="rounded-full bg-black px-3 py-1 text-xs text-white"
             >
               {interest}
             </span>

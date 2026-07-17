@@ -18,7 +18,7 @@ import {
 } from "firebase/firestore";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { isProfileComplete, UserProfile } from "@/types/user";
+import { isProfileComplete, MAX_INTERESTS_PREVIEW, UserProfile } from "@/types/user";
 
 export default function Home() {
   const router = useRouter();
@@ -121,6 +121,20 @@ const handleLogin = async () => {
           <p>學習語言：{profile.targetLanguage}</p>
           <p>自我介紹：{profile.bio}</p>
           <p>聯絡方式：{profile.contact}</p>
+          {profile.interests && profile.interests.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2">
+              {profile.interests
+                .slice(0, MAX_INTERESTS_PREVIEW)
+                .map((interest) => (
+                  <span
+                    key={interest}
+                    className="rounded-full bg-black px-3 py-1 text-xs text-white"
+                  >
+                    {interest}
+                  </span>
+                ))}
+            </div>
+          )}
         </>
       )}
       <Link

@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc,updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { LANGUAGE_OPTIONS, Language } from "@/types/user";
+import {
+  INTEREST_OPTIONS,
+  Interest,
+  LANGUAGE_OPTIONS,
+  Language,
+  MAX_INTERESTS_SELECTION,
+} from "@/types/user";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -12,6 +18,17 @@ export default function ProfilePage() {
   const [targetLanguage, setTargetLanguage] = useState<Language | "">("");
   const [bio, setBio] = useState("");
   const [contact, setContact] = useState("");
+  const [interests, setInterests] = useState<Interest[]>([]);
+
+  const toggleInterest = (interest: Interest) => {
+    setInterests((prev) =>
+      prev.includes(interest)
+        ? prev.filter((i) => i !== interest)
+        : prev.length < MAX_INTERESTS_SELECTION
+          ? [...prev, interest]
+          : prev
+    );
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -37,6 +54,13 @@ export default function ProfilePage() {
       );
       setBio(data.bio || "");
       setContact(data.contact || "");
+      setInterests(
+        Array.isArray(data.interests)
+          ? data.interests.filter((interest: unknown) =>
+              INTEREST_OPTIONS.includes(interest as Interest)
+            )
+          : []
+      );
     };
 
     fetchProfile();
@@ -63,6 +87,7 @@ export default function ProfilePage() {
         targetLanguage,
         bio,
         contact,
+        interests,
       });
 
       alert("個人資料儲存成功！");
@@ -134,6 +159,36 @@ export default function ProfilePage() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <span className="mb-2 block font-medium">
+            興趣（已選擇 {interests.length} / {MAX_INTERESTS_SELECTION}）
+          </span>
+
+          <div className="flex flex-wrap gap-2">
+            {INTEREST_OPTIONS.map((interest) => {
+              const selected = interests.includes(interest);
+              const disabled =
+                !selected && interests.length >= MAX_INTERESTS_SELECTION;
+
+              return (
+                <button
+                  key={interest}
+                  type="button"
+                  onClick={() => toggleInterest(interest)}
+                  disabled={disabled}
+                  className={`rounded-full px-3 py-1 text-sm ${
+                    selected
+                      ? "border border-black bg-white text-black"
+                      : "bg-black text-white disabled:opacity-40"
+                  }`}
+                >
+                  {interest}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div>

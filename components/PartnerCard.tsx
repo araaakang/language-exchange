@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Language } from "@/types/user";
+import { Interest, Language, MAX_INTERESTS_PREVIEW } from "@/types/user";
 
 export interface PartnerCardData {
   uid: string;
@@ -9,11 +9,10 @@ export interface PartnerCardData {
   nativeLanguage?: Language;
   targetLanguage?: Language;
   bio?: string;
-  interests?: string[];
+  interests?: Interest[];
 }
 
 const BIO_PREVIEW_LENGTH = 100;
-const MAX_INTERESTS = 3;
 
 export default function PartnerCard({ partner }: { partner: PartnerCardData }) {
   const bio = partner.bio ?? "";
@@ -58,10 +57,10 @@ export default function PartnerCard({ partner }: { partner: PartnerCardData }) {
 
       {interests.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
-          {interests.slice(0, MAX_INTERESTS).map((interest) => (
+          {interests.slice(0, MAX_INTERESTS_PREVIEW).map((interest) => (
             <span
               key={interest}
-              className="rounded-full bg-gray-100 px-3 py-1 text-xs"
+              className="rounded-full bg-black px-3 py-1 text-xs text-white"
             >
               {interest}
             </span>
