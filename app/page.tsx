@@ -2,92 +2,74 @@
 
 import { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  User,
-} from "firebase/auth";
-import Image from "next/image";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-import Link from "next/link";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import { useOwnProfile } from "@/hooks/useOwnProfile";
+import { isProfileComplete } from "@/types/user";
+import PartnerCard, { PartnerCardData } from "@/components/PartnerCard";
 import { useRouter } from "next/navigation";
-import { isProfileComplete, MAX_INTERESTS_PREVIEW, UserProfile } from "@/types/user";
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
+  const { user, profile, loading } = useOwnProfile();
+  const [partners, setPartners] = useState<PartnerCardData[]>([]);
+  const [listLoading, setListLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (currentUser) => {
-        setUser(currentUser);
+    // profile is temporarily null while useOwnProfile()
+    // finishes the initial Firestore fetch.
+    if (loading || !user || profile === null) {
+      return;
+    }
 
-        if (!currentUser) return;
+    if (!isProfileComplete(profile)) {
+      router.push("/profile");
+      return;
+    }
 
-        const userRef = doc(
-          db,
-          "users",
-          currentUser.uid
+    const fetchPartners = async () => {
+      try {
+        const usersQuery = query(
+          collection(db, "users"),
+          orderBy("createdAt", "desc"),
+          limit(20)
         );
 
-        const snapshot = await getDoc(userRef);
-        const data = snapshot.exists() ? snapshot.data() : null;
+        const snapshot = await getDocs(usersQuery);
 
-        if (data) {
-          setProfile(data as Partial<UserProfile>);
-        }
+        const results = snapshot.docs
+          .map((doc) => doc.data() as PartnerCardData)
+          .filter((partner) => partner.uid !== user.uid);
 
-        if (!isProfileComplete(data)) {
-          router.push("/profile");
-        }
+        setPartners(results);
+      } catch (err) {
+        console.error(err);
+        setError(true);
+      } finally {
+        setListLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
-  }, [router]);
+    fetchPartners();
+  }, [loading, user, profile, router]);
 
-const handleLogin = async () => {
-  const provider = new GoogleAuthProvider();
-
-  const result = await signInWithPopup(auth, provider);
-
-  const user = result.user;
-
-  const userRef = doc(db, "users", user.uid);
-
-  const userSnapshot = await getDoc(userRef);
-
-  if (!userSnapshot.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      displayName: user.displayName,
-      email: user.email,
-      photoURL: user.photoURL,
-      createdAt: serverTimestamp(),
-    });
-
-    console.log("新使用者建立成功");
-  } else {
-    console.log("使用者已存在");
-  }
-};
-
-  const handleLogout = async () => {
-    await signOut(auth);
+  const handleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
   };
+
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-4xl p-8">
+        <p>載入中...</p>
+      </main>
+    );
+  }
 
   if (!user) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
+      <main className="flex min-h-[80vh] items-center justify-center">
         <button
           onClick={handleLogin}
           className="rounded-lg bg-black px-6 py-3 text-white"
@@ -98,63 +80,39 @@ const handleLogin = async () => {
     );
   }
 
+  if (!isProfileComplete(profile)) {
+    return null;
+  }
+
+  if (listLoading) {
+    return (
+      <main className="mx-auto max-w-4xl p-8">
+        <p>載入中...</p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="mx-auto max-w-4xl p-8">
+        <p>載入會員列表失敗，請稍後再試。</p>
+      </main>
+    );
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4">
-      {user.photoURL && (
-        <Image
-          src={user.photoURL}
-          alt="profile"
-          width={100}
-          height={100}
-          className="rounded-full"
-        />
-      )}
+    <main className="mx-auto max-w-4xl p-8">
+      <h1 className="mb-8 text-3xl font-bold">會員列表</h1>
 
-      <h1 className="text-3xl font-bold">
-        嗨，{user.displayName} 👋
-      </h1>
-
-      <p>{user.email}</p>
-      {profile && (
-        <>
-          <p>母語：{profile.nativeLanguage}</p>
-          <p>學習語言：{profile.targetLanguage}</p>
-          <p>自我介紹：{profile.bio}</p>
-          <p>聯絡方式：{profile.contact}</p>
-          {profile.interests && profile.interests.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2">
-              {profile.interests
-                .slice(0, MAX_INTERESTS_PREVIEW)
-                .map((interest) => (
-                  <span
-                    key={interest}
-                    className="rounded-full bg-black px-3 py-1 text-xs text-white"
-                  >
-                    {interest}
-                  </span>
-                ))}
-            </div>
-          )}
-        </>
+      {partners.length === 0 ? (
+        <p>目前還沒有其他會員。</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {partners.map((partner) => (
+            <PartnerCard key={partner.uid} partner={partner} />
+          ))}
+        </div>
       )}
-      <Link
-        href="/profile"
-        className="rounded-lg bg-blue-500 px-4 py-2 text-white"
-      >
-        編輯個人資料
-      </Link>
-      <Link
-        href="/users"
-        className="rounded-lg bg-blue-500 px-4 py-2 text-white"
-      >
-        瀏覽會員
-      </Link>
-      <button
-        onClick={handleLogout}
-        className="rounded-lg bg-red-500 px-4 py-2 text-white"
-      >
-        登出
-      </button>
     </main>
   );
 }

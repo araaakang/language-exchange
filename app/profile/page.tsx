@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { auth, db } from "@/lib/firebase";
-import { doc, getDoc,updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import {
   INTEREST_OPTIONS,
@@ -11,14 +11,51 @@ import {
   Language,
   MAX_INTERESTS_SELECTION,
 } from "@/types/user";
+import { useOwnProfile } from "@/hooks/useOwnProfile";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { user, profile, loading } = useOwnProfile();
+
   const [nativeLanguage, setNativeLanguage] = useState<Language | "">("");
   const [targetLanguage, setTargetLanguage] = useState<Language | "">("");
   const [bio, setBio] = useState("");
   const [contact, setContact] = useState("");
   const [interests, setInterests] = useState<Interest[]>([]);
+  const [hasPrefilled, setHasPrefilled] = useState(false);
+
+  // Adjust form state during render, once, when own profile data first arrives.
+  if (!loading && user && !hasPrefilled) {
+    setHasPrefilled(true);
+
+    if (profile) {
+      setNativeLanguage(
+        profile.nativeLanguage && LANGUAGE_OPTIONS.includes(profile.nativeLanguage)
+          ? profile.nativeLanguage
+          : ""
+      );
+      setTargetLanguage(
+        profile.targetLanguage && LANGUAGE_OPTIONS.includes(profile.targetLanguage)
+          ? profile.targetLanguage
+          : ""
+      );
+      setBio(profile.bio || "");
+      setContact(profile.contact || "");
+      setInterests(
+        Array.isArray(profile.interests)
+          ? profile.interests.filter((interest) =>
+              INTEREST_OPTIONS.includes(interest)
+            )
+          : []
+      );
+    }
+  }
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/");
+    }
+  }, [loading, user, router]);
 
   const toggleInterest = (interest: Interest) => {
     setInterests((prev) =>
@@ -30,57 +67,16 @@ export default function ProfilePage() {
     );
   };
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!auth.currentUser) return;
-
-      const userRef = doc(
-        db,
-        "users",
-        auth.currentUser.uid
-      );
-
-      const snapshot = await getDoc(userRef);
-
-      if (!snapshot.exists()) return;
-
-      const data = snapshot.data();
-
-      setNativeLanguage(
-        LANGUAGE_OPTIONS.includes(data.nativeLanguage) ? data.nativeLanguage : ""
-      );
-      setTargetLanguage(
-        LANGUAGE_OPTIONS.includes(data.targetLanguage) ? data.targetLanguage : ""
-      );
-      setBio(data.bio || "");
-      setContact(data.contact || "");
-      setInterests(
-        Array.isArray(data.interests)
-          ? data.interests.filter((interest: unknown) =>
-              INTEREST_OPTIONS.includes(interest as Interest)
-            )
-          : []
-      );
-    };
-
-    fetchProfile();
-  }, []);
-
-
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!auth.currentUser) {
+    if (!user) {
       alert("請先登入");
       return;
     }
 
     try {
-      const userRef = doc(
-        db,
-        "users",
-        auth.currentUser.uid
-      );
+      const userRef = doc(db, "users", user.uid);
 
       await updateDoc(userRef, {
         nativeLanguage,
@@ -96,7 +92,7 @@ export default function ProfilePage() {
       alert("儲存失敗");
     }
 
-    router.push("/");
+    router.push("/user");
   };
 
   return (
