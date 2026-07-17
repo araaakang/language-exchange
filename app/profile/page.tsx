@@ -12,6 +12,7 @@ import {
   MAX_INTERESTS_SELECTION,
 } from "@/types/user";
 import { useOwnProfile } from "@/hooks/useOwnProfile";
+import InterestChipToggle from "@/components/InterestChipToggle";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -162,29 +163,11 @@ export default function ProfilePage() {
             興趣（已選擇 {interests.length} / {MAX_INTERESTS_SELECTION}）
           </span>
 
-          <div className="flex flex-wrap gap-2">
-            {INTEREST_OPTIONS.map((interest) => {
-              const selected = interests.includes(interest);
-              const disabled =
-                !selected && interests.length >= MAX_INTERESTS_SELECTION;
-
-              return (
-                <button
-                  key={interest}
-                  type="button"
-                  onClick={() => toggleInterest(interest)}
-                  disabled={disabled}
-                  className={`rounded-full px-3 py-1 text-sm ${
-                    selected
-                      ? "border border-black bg-white text-black"
-                      : "bg-black text-white disabled:opacity-40"
-                  }`}
-                >
-                  {interest}
-                </button>
-              );
-            })}
-          </div>
+          <InterestChipToggle
+            selected={interests}
+            onToggle={toggleInterest}
+            maxSelection={MAX_INTERESTS_SELECTION}
+          />
         </div>
 
         <div>
