@@ -12,9 +12,19 @@ export interface PartnerCardData {
   interests?: Interest[];
 }
 
+interface PartnerCardProps {
+  partner: PartnerCardData;
+  isFavorited: boolean;
+  onToggleFavorite: () => void;
+}
+
 const BIO_PREVIEW_LENGTH = 100;
 
-export default function PartnerCard({ partner }: { partner: PartnerCardData }) {
+export default function PartnerCard({
+  partner,
+  isFavorited,
+  onToggleFavorite,
+}: PartnerCardProps) {
   const bio = partner.bio ?? "";
   const interests = partner.interests ?? [];
   const nativeLanguage = partner.nativeLanguage ?? "";
@@ -30,22 +40,37 @@ export default function PartnerCard({ partner }: { partner: PartnerCardData }) {
       href={`/users/${partner.uid}`}
       className="block rounded-lg border p-4 transition hover:border-gray-400"
     >
-      <div className="flex items-center gap-3">
-        {partner.photoURL ? (
-          <Image
-            src={partner.photoURL}
-            alt={partner.displayName ?? "使用者頭像"}
-            width={48}
-            height={48}
-            className="rounded-full"
-          />
-        ) : (
-          <div className="h-12 w-12 rounded-full bg-gray-200" />
-        )}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {partner.photoURL ? (
+            <Image
+              src={partner.photoURL}
+              alt={partner.displayName ?? "使用者頭像"}
+              width={48}
+              height={48}
+              className="rounded-full"
+            />
+          ) : (
+            <div className="h-12 w-12 rounded-full bg-gray-200" />
+          )}
 
-        <h2 className="font-bold">
-          {partner.displayName ?? "匿名使用者"}
-        </h2>
+          <h2 className="font-bold">
+            {partner.displayName ?? "匿名使用者"}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleFavorite();
+          }}
+          aria-label={isFavorited ? "取消收藏" : "收藏"}
+          className="text-2xl leading-none"
+        >
+          {isFavorited ? "♥" : "♡"}
+        </button>
       </div>
 
       <p className="mt-3 text-sm">母語：{nativeLanguage || "尚未設定"}</p>

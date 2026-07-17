@@ -5,6 +5,7 @@ import { auth, db } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { useOwnProfile } from "@/hooks/useOwnProfile";
+import { useFavorites } from "@/hooks/useFavorites";
 import {
   Interest,
   isProfileComplete,
@@ -52,6 +53,7 @@ function matchesFilters(
 export default function Home() {
   const router = useRouter();
   const { user, profile, loading } = useOwnProfile();
+  const { isFavorited, toggleFavorite } = useFavorites();
   const [partners, setPartners] = useState<PartnerCardData[]>([]);
   const [listLoading, setListLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -259,7 +261,12 @@ export default function Home() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {filteredPartners.map((partner) => (
-            <PartnerCard key={partner.uid} partner={partner} />
+            <PartnerCard
+              key={partner.uid}
+              partner={partner}
+              isFavorited={isFavorited(partner.uid)}
+              onToggleFavorite={() => toggleFavorite(partner.uid)}
+            />
           ))}
         </div>
       )}

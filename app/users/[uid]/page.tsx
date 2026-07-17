@@ -8,6 +8,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { PartnerCardData } from "@/components/PartnerCard";
 import { isProfileComplete } from "@/types/user";
 import { useOwnProfile } from "@/hooks/useOwnProfile";
+import { useFavorites } from "@/hooks/useFavorites";
 import ProfileDetail from "@/components/ProfileDetail";
 
 type PartnerDetail = PartnerCardData & { contact?: string };
@@ -17,6 +18,7 @@ export default function UserDetailPage() {
   const router = useRouter();
   const uid = params.uid;
   const { user, profile: ownProfile, loading: ownLoading } = useOwnProfile();
+  const { isFavorited, toggleFavorite } = useFavorites();
 
   const [partner, setPartner] = useState<PartnerDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,6 +66,10 @@ export default function UserDetailPage() {
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   if (error) {
     return (
       <main className="mx-auto max-w-2xl p-8">
@@ -91,6 +97,17 @@ export default function UserDetailPage() {
       >
         返回會員列表
       </Link>
+
+      {uid !== user.uid && (
+        <button
+          type="button"
+          onClick={() => toggleFavorite(uid)}
+          aria-label={isFavorited(uid) ? "取消收藏" : "收藏"}
+          className="mb-4 text-3xl leading-none"
+        >
+          {isFavorited(uid) ? "♥" : "♡"}
+        </button>
+      )}
 
       <ProfileDetail data={partner} />
     </main>

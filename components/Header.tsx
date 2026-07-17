@@ -48,6 +48,12 @@ export default function Header() {
             >
               會員資料
             </Link>
+            <Link
+              href="/favorites"
+              className="block px-4 py-2 text-sm hover:bg-gray-100"
+            >
+              我的收藏
+            </Link>
             <button
               type="button"
               onClick={handleLogout}
