@@ -26,7 +26,31 @@ service cloud.firestore {
 
         allow delete: if request.auth != null
                       && request.auth.uid == userId;
+
+        allow update: if false;
+      }
+    }
+
+    match /invitations/{pairId} {
+
+        allow read: if request.auth != null
+                    && request.auth.uid in resource.data.participants;
+
+        allow create: if request.auth != null
+                      && request.auth.uid == request.resource.data.fromUid
+                      && request.resource.data.fromUid != request.resource.data.toUid
+                      && request.resource.data.status == "pending";
+
+        allow update: if request.auth != null
+                      && request.auth.uid == resource.data.toUid
+                      && resource.data.status == "pending"
+                      && request.resource.data.status in ["accepted", "rejected"]
+                      && request.resource.data.fromUid == resource.data.fromUid
+                      && request.resource.data.toUid == resource.data.toUid
+                      && request.resource.data.pairId == resource.data.pairId
+                      && request.resource.data.participants == resource.data.participants;
+
+        allow delete: if false;
       }
     }
   }
-}

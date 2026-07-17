@@ -54,6 +54,12 @@ export default function Header() {
             >
               我的收藏
             </Link>
+            <Link
+              href="/invitations"
+              className="block px-4 py-2 text-sm hover:bg-gray-100"
+            >
+              邀請
+            </Link>
             <button
               type="button"
               onClick={handleLogout}

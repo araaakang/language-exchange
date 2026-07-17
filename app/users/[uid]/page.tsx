@@ -9,6 +9,7 @@ import { PartnerCardData } from "@/components/PartnerCard";
 import { isProfileComplete } from "@/types/user";
 import { useOwnProfile } from "@/hooks/useOwnProfile";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useInvitations } from "@/hooks/useInvitations";
 import ProfileDetail from "@/components/ProfileDetail";
 
 type PartnerDetail = PartnerCardData & { contact?: string };
@@ -19,6 +20,8 @@ export default function UserDetailPage() {
   const uid = params.uid;
   const { user, profile: ownProfile, loading: ownLoading } = useOwnProfile();
   const { isFavorited, toggleFavorite } = useFavorites();
+  const { getInvitationWith, sendInvitation, respondInvitation } =
+    useInvitations();
 
   const [partner, setPartner] = useState<PartnerDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,14 +102,63 @@ export default function UserDetailPage() {
       </Link>
 
       {uid !== user.uid && (
-        <button
-          type="button"
-          onClick={() => toggleFavorite(uid)}
-          aria-label={isFavorited(uid) ? "取消收藏" : "收藏"}
-          className="mb-4 text-3xl leading-none"
-        >
-          {isFavorited(uid) ? "♥" : "♡"}
-        </button>
+        <div className="mb-4 flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => toggleFavorite(uid)}
+            aria-label={isFavorited(uid) ? "取消收藏" : "收藏"}
+            className="text-3xl leading-none"
+          >
+            {isFavorited(uid) ? "♥" : "♡"}
+          </button>
+
+          {(() => {
+            const invitation = getInvitationWith(uid);
+
+            if (!invitation) {
+              return (
+                <button
+                  type="button"
+                  onClick={() => sendInvitation(uid)}
+                  className="rounded-lg bg-blue-500 px-4 py-2 text-white"
+                >
+                  發送邀請
+                </button>
+              );
+            }
+
+            if (invitation.status === "pending") {
+              if (invitation.toUid === user.uid) {
+                return (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => respondInvitation(invitation.pairId, "accepted")}
+                      className="rounded-lg bg-blue-500 px-4 py-2 text-white"
+                    >
+                      接受
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => respondInvitation(invitation.pairId, "rejected")}
+                      className="rounded-lg border px-4 py-2"
+                    >
+                      拒絕
+                    </button>
+                  </div>
+                );
+              }
+
+              return <p className="text-sm text-gray-600">邀請中，等待對方回覆</p>;
+            }
+
+            if (invitation.status === "accepted") {
+              return <p className="text-sm text-gray-600">已成為語伴</p>;
+            }
+
+            return <p className="text-sm text-gray-600">邀請已被拒絕</p>;
+          })()}
+        </div>
       )}
 
       <ProfileDetail data={partner} />
