@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   query,
@@ -127,6 +128,27 @@ export function useInvitations() {
     }
   };
 
+  const removePartner = async (pairId: string) => {
+    const target = invitations.find(
+      (invitation) => invitation.pairId === pairId
+    );
+    if (!target || target.status !== "accepted") return;
+
+    if (!window.confirm("確定要解除語伴嗎？")) return;
+
+    setInvitations((prev) =>
+      prev.filter((invitation) => invitation.pairId !== pairId)
+    );
+
+    try {
+      await deleteDoc(doc(db, "invitations", pairId));
+    } catch (err) {
+      console.error(err);
+      alert("操作失敗，請稍後再試");
+      setInvitations((prev) => [...prev, target]);
+    }
+  };
+
   return {
     invitations,
     loading,
@@ -134,5 +156,6 @@ export function useInvitations() {
     getInvitationWith,
     sendInvitation,
     respondInvitation,
+    removePartner,
   };
 }

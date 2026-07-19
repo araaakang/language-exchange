@@ -20,8 +20,12 @@ export default function UserDetailPage() {
   const uid = params.uid;
   const { user, profile: ownProfile, loading: ownLoading } = useOwnProfile();
   const { isFavorited, toggleFavorite } = useFavorites();
-  const { getInvitationWith, sendInvitation, respondInvitation } =
-    useInvitations();
+  const {
+    getInvitationWith,
+    sendInvitation,
+    respondInvitation,
+    removePartner,
+  } = useInvitations();
 
   const [partner, setPartner] = useState<PartnerDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -153,7 +157,18 @@ export default function UserDetailPage() {
             }
 
             if (invitation.status === "accepted") {
-              return <p className="text-sm text-gray-600">已成為語伴</p>;
+              return (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-gray-600">已成為語伴</p>
+                  <button
+                    type="button"
+                    onClick={() => removePartner(invitation.pairId)}
+                    className="rounded-lg border border-red-500 px-4 py-2 text-sm text-red-500"
+                  >
+                    解除語伴
+                  </button>
+                </div>
+              );
             }
 
             return <p className="text-sm text-gray-600">邀請已被拒絕</p>;

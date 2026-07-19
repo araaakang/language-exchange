@@ -18,12 +18,14 @@ function InvitationRow({
   isReceived,
   onAccept,
   onReject,
+  onRemove,
 }: {
   invitation: Invitation;
   partner: PartnerCardData | undefined;
   isReceived: boolean;
   onAccept?: () => void;
   onReject?: () => void;
+  onRemove?: () => void;
 }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border p-4">
@@ -61,10 +63,20 @@ function InvitationRow({
             拒絕
           </button>
         </div>
+      ) : invitation.status === "accepted" ? (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">已成為語伴</span>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="rounded-lg border border-red-500 px-4 py-2 text-sm text-red-500"
+          >
+            解除語伴
+          </button>
+        </div>
       ) : (
         <span className="text-sm text-gray-600">
           {invitation.status === "pending" && "等待對方回覆"}
-          {invitation.status === "accepted" && "已成為語伴"}
           {invitation.status === "rejected" && "已拒絕"}
         </span>
       )}
@@ -80,6 +92,7 @@ export default function InvitationsPage() {
     loading: invitationsLoading,
     error: invitationsError,
     respondInvitation,
+    removePartner,
   } = useInvitations();
 
   const [partners, setPartners] = useState<Record<string, PartnerCardData>>({});
@@ -207,6 +220,7 @@ export default function InvitationsPage() {
                 isReceived
                 onAccept={() => respondInvitation(invitation.pairId, "accepted")}
                 onReject={() => respondInvitation(invitation.pairId, "rejected")}
+                onRemove={() => removePartner(invitation.pairId)}
               />
             ))}
           </div>
@@ -225,6 +239,7 @@ export default function InvitationsPage() {
                 invitation={invitation}
                 partner={partners[invitation.toUid]}
                 isReceived={false}
+                onRemove={() => removePartner(invitation.pairId)}
               />
             ))}
           </div>
