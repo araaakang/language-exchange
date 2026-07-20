@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useOwnProfile } from "@/hooks/useOwnProfile";
+import { ensureDirectChat } from "@/lib/chat";
 import {
   getInvitationPairId,
   getInvitationParticipants,
@@ -113,6 +114,13 @@ export function useInvitations() {
         status,
         updatedAt: serverTimestamp(),
       });
+
+      if (status === "accepted") {
+        const invitation = invitations.find((inv) => inv.pairId === pairId);
+        if (invitation) {
+          await ensureDirectChat(invitation.fromUid, invitation.toUid);
+        }
+      }
     } catch (err) {
       console.error(err);
       alert("操作失敗，請稍後再試");

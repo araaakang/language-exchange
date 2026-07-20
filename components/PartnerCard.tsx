@@ -1,6 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Interest, Language, MAX_INTERESTS_PREVIEW } from "@/types/user";
+import { useInvitations } from "@/hooks/useInvitations";
+import { useOwnProfile } from "@/hooks/useOwnProfile";
+import { getChatId } from "@/types/chat";
 
 export interface PartnerCardData {
   uid: string;
@@ -25,6 +29,17 @@ export default function PartnerCard({
   isFavorited,
   onToggleFavorite,
 }: PartnerCardProps) {
+  const router = useRouter();
+  const { user } = useOwnProfile();
+  const { getInvitationWith } = useInvitations();
+
+  const isAccepted = getInvitationWith(partner.uid)?.status === "accepted";
+
+  const handleChat = () => {
+    if (!user) return;
+    router.push(`/chat/${getChatId(user.uid, partner.uid)}`);
+  };
+
   const bio = partner.bio ?? "";
   const interests = partner.interests ?? [];
   const nativeLanguage = partner.nativeLanguage ?? "";
@@ -59,18 +74,34 @@ export default function PartnerCard({
           </h2>
         </div>
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggleFavorite();
-          }}
-          aria-label={isFavorited ? "取消收藏" : "收藏"}
-          className="text-2xl leading-none"
-        >
-          {isFavorited ? "♥" : "♡"}
-        </button>
+        <div className="flex items-center gap-3">
+          {isAccepted && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleChat();
+              }}
+              className="rounded-lg bg-blue-500 px-3 py-1 text-sm text-white"
+            >
+              聊天
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavorite();
+            }}
+            aria-label={isFavorited ? "取消收藏" : "收藏"}
+            className="text-2xl leading-none"
+          >
+            {isFavorited ? "♥" : "♡"}
+          </button>
+        </div>
       </div>
 
       <p className="mt-3 text-sm">母語：{nativeLanguage || "尚未設定"}</p>

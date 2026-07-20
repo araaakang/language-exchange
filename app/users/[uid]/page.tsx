@@ -11,6 +11,7 @@ import { useOwnProfile } from "@/hooks/useOwnProfile";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useInvitations } from "@/hooks/useInvitations";
 import ProfileDetail from "@/components/ProfileDetail";
+import { getChatId } from "@/types/chat";
 
 type PartnerDetail = PartnerCardData & { contact?: string };
 
@@ -160,6 +161,13 @@ export default function UserDetailPage() {
               return (
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-gray-600">已成為語伴</p>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/chat/${getChatId(user.uid, uid)}`)}
+                    className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white"
+                  >
+                    聊天
+                  </button>
                   <button
                     type="button"
                     onClick={() => removePartner(invitation.pairId)}

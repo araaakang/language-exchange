@@ -60,6 +60,12 @@ export default function Header() {
             >
               邀請
             </Link>
+            <Link
+              href="/chat"
+              className="block px-4 py-2 text-sm hover:bg-gray-100"
+            >
+              聊天
+            </Link>
             <button
               type="button"
               onClick={handleLogout}

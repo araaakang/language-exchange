@@ -6,7 +6,7 @@ export interface Invitation {
   pairId: string;
   fromUid: string;
   toUid: string;
-  participants: [string, string];
+  participants: string[];
   status: InvitationStatus;
   createdAt: Date;
   updatedAt: Date;
