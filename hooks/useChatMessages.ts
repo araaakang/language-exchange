@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   collection,
-  getDocs,
+  onSnapshot,
   orderBy,
   query,
   Timestamp,
@@ -11,52 +11,40 @@ import {
 import { db } from "@/lib/firebase";
 import { Message } from "@/types/message";
 
-async function loadMessages(chatId: string): Promise<Message[]> {
-  const snapshot = await getDocs(
-    query(
-      collection(db, "chats", chatId, "messages"),
-      orderBy("createdAt", "asc")
-    )
-  );
-
-  return snapshot.docs.map((d) => {
-    const data = d.data();
-    return {
-      ...data,
-      createdAt: (data.createdAt as Timestamp).toDate(),
-    } as Message;
-  });
-}
-
 export function useChatMessages(chatId: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const run = async () => {
-      setLoading(true);
-      try {
-        setMessages(await loadMessages(chatId));
-      } catch (err) {
+    const messagesQuery = query(
+      collection(db, "chats", chatId, "messages"),
+      orderBy("createdAt", "asc")
+    );
+
+    const unsubscribe = onSnapshot(
+      messagesQuery,
+      (snapshot) => {
+        setMessages(
+          snapshot.docs.map((d) => {
+            const data = d.data();
+            const createdAt =
+              data.createdAt instanceof Timestamp
+                ? data.createdAt.toDate()
+                : new Date();
+
+            return { ...data, createdAt } as Message;
+          })
+        );
+        setLoading(false);
+      },
+      (err) => {
         console.error(err);
-      } finally {
         setLoading(false);
       }
-    };
+    );
 
-    run();
+    return unsubscribe;
   }, [chatId]);
 
-  const fetchMessages = async () => {
-    setLoading(true);
-    try {
-      setMessages(await loadMessages(chatId));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return { messages, loading, fetchMessages };
+  return { messages, loading };
 }
