@@ -1,6 +1,12 @@
-# 🌏 Language Exchange Platform
+# 🌏 YORI
+Every conversation brings us closer.
+
+Find your language partner.
+Practice together.
+Grow together.
 
 一個以語言交換為主題的配對平台，幫助使用者找到適合的語伴，建立交流並開始對話。
+
 
 ## ✨ 功能
 
