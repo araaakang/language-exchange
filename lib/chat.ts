@@ -1,4 +1,10 @@
-import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  runTransaction,
+  serverTimestamp,
+  writeBatch,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { CHAT_SCHEMA_VERSION, getChatId, getChatParticipants } from "@/types/chat";
 
@@ -39,4 +45,41 @@ export async function ensureDirectChat(
   });
 
   return { chatId, created };
+}
+
+export async function sendMessage(
+  chatId: string,
+  senderId: string,
+  text: string
+): Promise<void> {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    throw new Error("訊息內容不可為空");
+  }
+
+  const chatRef = doc(db, "chats", chatId);
+  const messageRef = doc(collection(chatRef, "messages"));
+
+  const batch = writeBatch(db);
+
+  batch.set(messageRef, {
+    senderId,
+    type: "text",
+    text: trimmed,
+    status: "sent",
+    createdAt: serverTimestamp(),
+  });
+
+  batch.update(chatRef, {
+    lastMessage: {
+      text: trimmed,
+      senderId,
+      type: "text",
+      createdAt: serverTimestamp(),
+    },
+    lastMessageAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  await batch.commit();
 }
