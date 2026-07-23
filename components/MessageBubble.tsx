@@ -20,7 +20,7 @@ export default function MessageBubble({
         className={`flex max-w-[75%] flex-col ${isOwn ? "items-end" : "items-start"}`}
       >
         <div
-          className={`rounded-lg px-3 py-2 text-sm ${
+          className={`whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${
             isOwn ? "bg-blue-500 text-white" : "bg-gray-100 text-black"
           }`}
         >
