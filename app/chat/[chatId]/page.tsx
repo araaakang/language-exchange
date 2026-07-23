@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ChatRoomHeader from "@/components/ChatRoomHeader";
 import MessageBubble from "@/components/MessageBubble";
@@ -22,6 +22,17 @@ export default function ChatRoomPage() {
     user?.uid ?? ""
   );
   const [draft, setDraft] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+
+    bottomRef.current?.scrollIntoView({
+      behavior: isFirstRender.current ? "auto" : "smooth",
+    });
+    isFirstRender.current = false;
+  }, [messages]);
 
   const handleSend = async () => {
     if (!user || !draft.trim()) return;
@@ -68,6 +79,7 @@ export default function ChatRoomPage() {
             );
           })
         )}
+        <div ref={bottomRef} />
       </div>
 
       <ChatInputBar value={draft} onChange={setDraft} onSend={handleSend} />
