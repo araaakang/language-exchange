@@ -13,3 +13,7 @@ export interface Message {
   createdAt: Date;
   status: MessageStatus;
 }
+
+export interface MessageDocument extends Message {
+  messageId: string;
+}

@@ -9,10 +9,10 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Message } from "@/types/message";
+import { MessageDocument } from "@/types/message";
 
 export function useChatMessages(chatId: string) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<MessageDocument[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export function useChatMessages(chatId: string) {
                 ? data.createdAt.toDate()
                 : new Date();
 
-            return { ...data, createdAt } as Message;
+            return { ...data, createdAt, messageId: d.id } as MessageDocument;
           })
         );
         setLoading(false);

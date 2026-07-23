@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ChatRoomHeader from "@/components/ChatRoomHeader";
 import MessageBubble from "@/components/MessageBubble";
 import ChatInputBar from "@/components/ChatInputBar";
+import DateDivider from "@/components/DateDivider";
 import { useOwnProfile } from "@/hooks/useOwnProfile";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useChatPartner } from "@/hooks/useChatPartner";
 import { sendMessage } from "@/lib/chat";
+import { formatChatDateDivider, isSameDay } from "@/lib/date";
 
 export default function ChatRoomPage() {
   const params = useParams<{ chatId: string }>();
@@ -46,14 +48,25 @@ export default function ChatRoomPage() {
         {loading ? (
           <p>載入中...</p>
         ) : (
-          messages.map((message, index) => (
-            <MessageBubble
-              key={index}
-              text={message.text}
-              createdAt={message.createdAt}
-              isOwn={message.senderId === user?.uid}
-            />
-          ))
+          messages.map((message, index) => {
+            const previousMessage = messages[index - 1];
+            const showDivider =
+              !previousMessage ||
+              !isSameDay(message.createdAt, previousMessage.createdAt);
+
+            return (
+              <Fragment key={message.messageId}>
+                {showDivider && (
+                  <DateDivider label={formatChatDateDivider(message.createdAt)} />
+                )}
+                <MessageBubble
+                  text={message.text}
+                  createdAt={message.createdAt}
+                  isOwn={message.senderId === user?.uid}
+                />
+              </Fragment>
+            );
+          })
         )}
       </div>
 
