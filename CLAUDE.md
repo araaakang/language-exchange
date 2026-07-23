@@ -43,6 +43,12 @@ view their profile.
   `nativeLanguage`, `targetLanguage`, `bio`, and `contact`.
 - Config comes from `NEXT_PUBLIC_FIREBASE_*` environment variables (set these in
   `.env.local`).
+- **Firestore document types**: a type for data stored in a Firestore collection
+  (e.g. `Message`, `Chat`) represents document *data* only — never add the
+  document ID as a field on it. If a document ID is needed (React keys,
+  lookups, etc.), define a separate `{Domain}Document extends {Domain} {
+  {domain}Id: string }` type (e.g. `ChatDocument`, `MessageDocument`) and
+  populate the ID only where `doc.id` is actually read from a snapshot.
 
 ## Notes
 
